@@ -8,7 +8,8 @@ module FirebaseIdToken
     let(:mock_certificates) do
       allow(Certificates)
         .to(receive(:find))
-        .with(an_instance_of(String), raise_error: raise_certificates_error)
+        .with(an_instance_of(String), raise_error: raise_certificates_error,
+          source: :id_token)
         .and_return(OpenSSL::X509::Certificate.new(jwt['certificate']))
     end
 
@@ -30,6 +31,19 @@ module FirebaseIdToken
 
       it 'returns nil with a invalid key format' do
         expect(described_class.verify('aaa')).to be(nil)
+      end
+
+      it 'returns nil when the token has no sub claim' do
+        payload = {
+          'iss' => 'https://securetoken.google.com/firebase-id-token',
+          'aud' => 'firebase-id-token',
+          'exp' => Time.now.to_i + 3600,
+          'iat' => Time.now.to_i - 60
+        }
+        token = JWT.encode(payload,
+          OpenSSL::PKey::RSA.new(jwt['private_key']), 'RS256', kid: 'test')
+
+        expect(described_class.verify(token)).to be(nil)
       end
     end
 

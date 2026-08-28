@@ -5,8 +5,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
 Nothing.
+
+## [4.0.0] - 2026-07-28
+
+### Added
+- Support for verifying Firebase Session Cookies with
+  `FirebaseIdToken::Signature.verify(cookie, type: :session_cookie)`. Session
+  Cookie certificates are downloaded from their own Google API URL and cached
+  apart from the ID Token ones.
+  [PR #46](https://github.com/fschuindt/firebase_id_token/pull/46).
+- Support for any `ActiveSupport::Cache` store through the new
+  `config.cache_store` configuration, with lazy certificate download on cache
+  miss, removing the need for Redis and scheduled certificate requests.
+  [PR #43](https://github.com/fschuindt/firebase_id_token/pull/43), closes
+  [issue #6](https://github.com/fschuindt/firebase_id_token/issues/6). The
+  legacy `config.redis` configuration keeps working as before.
+- A warning on `README.md` that `FirebaseIdToken.test!` must never be called
+  outside of a test suite, as the fixture private key is public in this
+  repository.
+- [Dev] `ostruct` as a development dependency, as it's no longer a default
+  gem in Ruby >= 3.5 and Pry requires it when running the specs.
+
+### Fixed
+- `Signature.verify` raised `NoMethodError` when a correctly signed token had
+  no `sub` claim, even with `raise_error: false`. It now returns `nil` as
+  documented.
+
+### Changed
+- Loosened the HTTParty dependency constraint to `>= 0.21, < 1.0`, allowing
+  newer releases. [Issue #44](https://github.com/fschuindt/firebase_id_token/issues/44).
+- CI now also runs on pull requests.
+
+### Removed
+- The Code Climate coverage publishing step and badges, as the service and
+  its GitHub Action are defunct. SimpleCov still reports coverage on every
+  test run.
 
 ## [3.0.0] - 2023-04-11
 
@@ -20,6 +54,7 @@ Nothing.
 - SimpleCov JSON formatter and `json` as dependency.
 
 ### Changed
+- Redis is no longer required. Any ActiveSupport cache will now work.
 - It won't default to `Redis.new` anymore. You must now provide Redis details during configuration. [Details here](https://github.com/fschuindt/firebase_id_token/issues/30).
 - Upgraded Redis to 5.0.6.
 - Upgraded Redis Namespace to 1.10.
@@ -152,6 +187,7 @@ Nothing.
 ## [0.1.0] - 2017-04-23
 *Version removed.*
 
+[4.0.0]: https://github.com/fschuindt/firebase_id_token/compare/3.0.0...4.0.0
 [3.0.0]: https://github.com/fschuindt/firebase_id_token/compare/2.5.2...3.0.0
 [2.5.2]: https://github.com/fschuindt/firebase_id_token/compare/2.5.1...2.5.2
 [2.5.1]: https://github.com/fschuindt/firebase_id_token/compare/2.5.0...2.5.1
